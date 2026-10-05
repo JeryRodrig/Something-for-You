@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#fff8f4" />
+    <meta
+      name="description"
+      content="Un pequeño recordatorio de todo el cariño que te tengo."
+    />
+    <title>Un detalle para ti</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #382822;
+        --paper: #fff8f4;
+        --rose: #b94d57;
+        --rose-dark: #963c48;
+        --muted: #725e56;
+        --serif: "Playfair Display", Georgia, serif;
+        --sans: "DM Sans", "Segoe UI", sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+      html { min-width: 320px; scroll-behavior: smooth; scroll-padding-top: 1rem; }
+      body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+      a { color: inherit; }
+      .cover { position: relative; display: flex; min-height: 660px; min-height: max(660px, 100svh); flex-direction: column; justify-content: space-between; overflow: hidden; padding: 0 7vw 74px; background: #60473e; color: #fffaf7; isolation: isolate; }
+      .cover__photo, .cover__shade { position: absolute; z-index: -1; inset: 0; width: 100%; height: 100%; }
+      .cover__photo { object-fit: cover; object-position: 50% 48%; }
+      .cover__loader { position: absolute; z-index: -1; inset: 0; background: linear-gradient(110deg, #60473e 8%, #806459 18%, #60473e 33%); background-size: 200% 100%; animation: cover-skeleton 1.4s linear infinite; pointer-events: none; transition: opacity 320ms ease, visibility 0s linear 320ms; }
+      .cover--loaded .cover__loader { visibility: hidden; opacity: 0; }
+      .cover--image-error .cover__photo { visibility: hidden; }
+      .cover__shade { background: linear-gradient(180deg, rgb(27 20 18 / 37%), transparent 25%, rgb(27 20 18 / 16%) 43%, rgb(27 20 18 / 69%)); }
+      .topbar { display: flex; min-height: 82px; align-items: center; justify-content: space-between; gap: 12px; }
+      .wordmark { display: inline-flex; align-items: center; gap: 9px; font-size: 14px; font-weight: 600; text-decoration: none; }
+      .wordmark__heart { color: #ffd2cb; font-size: 19px; }
+      .topbar__note { font-size: 12px; opacity: .85; }
+      .cover__content { width: min(100%, 700px); margin: auto 0 0; padding-top: 90px; }
+      .eyebrow { margin: 0 0 17px; font-size: 10px; font-weight: 700; letter-spacing: 2px; }
+      .cover h1 { max-width: 680px; margin: 0; font-family: var(--serif); font-size: clamp(48px, 12vw, 76px); font-weight: 500; line-height: 1.04; }
+      .cover h1 em { display: block; color: #ffded5; font-weight: 500; }
+      .cover__intro { max-width: 360px; margin: 20px 0 25px; font-size: 15px; line-height: 1.65; opacity: .94; }
+      .text-link { display: inline-flex; min-height: 44px; align-items: center; gap: 12px; font-size: 13px; font-weight: 600; text-decoration-thickness: 1px; text-underline-offset: 5px; }
+      .text-link span { font-size: 19px; }
+      .cover__caption { position: absolute; right: 7vw; bottom: 28px; font-size: 9px; letter-spacing: 1.7px; opacity: .78; }
+      .letter { position: relative; overflow: hidden; padding: 83px 24px 40px; background-color: var(--paper); background-image: radial-gradient(rgb(163 119 91 / 9%) .65px, transparent .65px); background-size: 11px 11px; }
+      .letter__inner { position: relative; z-index: 1; width: min(100%, 510px); margin: 0 auto; }
+      .eyebrow--rose { color: var(--rose); }
+      .letter h2 { max-width: 440px; margin: 0 0 17px; font-family: var(--serif); font-size: clamp(35px, 9vw, 48px); font-weight: 500; line-height: 1.14; }
+      .letter__body { max-width: 470px; margin: 0; color: var(--muted); font-size: 15px; line-height: 1.85; }
+      .hug { position: relative; margin-top: 34px; padding: 23px 19px 21px; border: 1px solid #ead7ca; border-radius: 14px; background: rgb(255 255 255 / 74%); text-align: center; }
+      .hug__selection { scroll-margin: 24px; transition: filter 220ms ease, opacity 220ms ease; }
+      .hug__selection--disabled { filter: grayscale(1); opacity: .48; pointer-events: none; user-select: none; }
+      .hug__spark { display: block; margin-bottom: 7px; color: var(--rose); font-size: 23px; }
+      .hug__prompt { margin: 0 0 15px; font-family: var(--serif); font-size: 21px; }
+      .hug__proposal { display: flex; align-items: center; justify-content: center; gap: 12px; }
+      .hug__proposal[hidden] { display: none; }
+      .hug__button { min-height: 48px; padding: 0 21px; border: 0; border-radius: 12px; background: var(--rose); color: #fff; font: 600 14px var(--sans); cursor: pointer; transition: background-color 160ms ease, transform 160ms ease; }
+      .hug__button:hover { background: var(--rose-dark); }
+      .hug__button:active { transform: scale(.98); }
+      .hug__button:focus-visible, .text-link:focus-visible, .wordmark:focus-visible { outline: 3px solid #e9a49a; outline-offset: 4px; }
+      .hug__button span { margin-left: 5px; }
+      .hug__button--no { display: grid; place-items: center; width: 286px; min-width: 286px; padding: 0 12px; background: #eee6e0; color: #493b35; text-align: center; }
+      .hug__button--no:hover { background: #e7ddd6; }
+      .hug__no-label { grid-area: 1 / 1; align-self: center; justify-self: center; margin-left: 0 !important; white-space: nowrap; transition: opacity 260ms ease; }
+      .hug__no-label--maintenance { opacity: 0; }
+      .hug__button--no.is-maintenance .hug__no-label--original { opacity: 0; }
+      .hug__button--no.is-maintenance .hug__no-label--maintenance { opacity: 1; }
+      .hug__options { display: grid; width: min(100%, 360px); gap: 10px; margin: 18px auto 0; text-align: left; }
+      .hug__options[hidden] { display: none; }
+      .hug__choice { display: flex; min-height: 48px; align-items: center; gap: 11px; padding: 10px 12px; border: 1px solid #ead7ca; border-radius: 9px; color: var(--ink); font-size: 14px; cursor: pointer; }
+      .hug__choice input { width: 18px; height: 18px; flex: 0 0 auto; accent-color: var(--rose); }
+      .hug__choice:focus-within { outline: 3px solid #e9a49a; outline-offset: 2px; }
+      .hug__message { margin: 17px 0 0; color: var(--rose-dark); font-family: var(--serif); font-size: 19px; line-height: 1.5; opacity: 0; transform: translateY(5px); transition: opacity 180ms ease, transform 180ms ease; }
+      .hug__message--visible { opacity: 1; transform: translateY(0); }
+      .booking__actions { display: flex; width: min(100%, 450px); align-items: center; justify-content: space-between; gap: 12px; margin: 17px auto 0; text-align: left; }
+      .booking__actions[hidden] { display: none; }
+      .booking__hint { flex: 1 1 0; margin: 0; color: var(--muted); font-size: 8px; font-weight: 500; letter-spacing: 1.4px; line-height: 1.6; text-transform: uppercase; }
+      .booking__button { flex: 0 0 auto; }
+      .hug__button:disabled { background: #bda9a1; cursor: not-allowed; }
+      .schedule { display: grid; width: min(100%, 360px); gap: 13px; margin: 24px auto 0; padding-top: 19px; border-top: 1px solid #ead7ca; text-align: left; scroll-margin-top: 24px; }
+      .schedule[hidden] { display: none; }
+      .schedule h3 { margin: 0 0 2px; font-family: var(--serif); font-size: 21px; font-weight: 500; line-height: 1.3; text-align: center; }
+      .schedule__field { display: grid; gap: 6px; color: var(--muted); font-size: 13px; font-weight: 600; }
+      .schedule__field select { width: 100%; min-height: 44px; padding: 0 10px; border: 1px solid #ead7ca; border-radius: 8px; background: #fff; color: var(--ink); font: 14px var(--sans); }
+      .schedule__field select:focus-visible { outline: 3px solid #e9a49a; outline-offset: 2px; }
+      .schedule__confirm { width: 100%; }
+      .schedule__confirmation { margin: 0; color: var(--rose-dark); font-family: var(--serif); font-size: 17px; line-height: 1.5; text-align: center; }
+      .signoff { display: grid; gap: 4px; margin: 28px 0 0; scroll-margin-block: 24px; color: var(--muted); font-family: var(--serif); font-size: 16px; }
+      .signoff span { color: var(--rose-dark); font-size: 20px; }
+      .letter__flower { position: absolute; color: #e8c6af; font-size: 52px; opacity: .7; }
+      .letter__flower--one { top: 39px; right: 9%; transform: rotate(17deg); }
+      .letter__flower--two { right: 13%; bottom: 35px; font-size: 31px; transform: rotate(-13deg); }
+      @keyframes cover-skeleton { to { background-position-x: -200%; } }
+      @keyframes appear { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+      @media (max-width: 600px) {
+        .hug__proposal { flex-direction: column; }
+        .hug__proposal > .hug__button { width: 100%; }
+        .hug__button--no { min-width: 0; }
+        .booking__actions { flex-direction: column-reverse; align-items: stretch; }
+        .booking__button { width: 100%; }
+        .booking__hint { text-align: center; }
+      }
+      @media (min-width: 720px) {
+        .cover { min-height: 720px; padding: 0 10vw 85px; }
+        .cover__photo { object-position: 50% 43%; }
+        .cover__content { padding-top: 130px; }
+        .cover__caption { right: 10vw; bottom: 35px; }
+        .letter { padding: 105px 32px 60px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="cover" aria-labelledby="page-title">
+        <div class="cover__loader" aria-hidden="true"></div>
+        <img
+          class="cover__photo"
+          src="https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=1800&q=85"
+          alt="Una pareja comparte un abrazo lleno de cariño"
+        />
+        <div class="cover__shade" aria-hidden="true"></div>
+        <header class="topbar">
+          <a class="wordmark" href="#inicio" aria-label="Un detalle para ti, inicio">
+            <span class="wordmark__heart" aria-hidden="true">♥</span>
+            una cosita para ti
+          </a>
+          <span class="topbar__note">hecho con amor</span>
+        </header>
+        <div class="cover__content" id="inicio">
+          <p class="eyebrow">PARA MI PERSONA FAVORITA</p>
+          <h1 id="page-title">Mi lugar favorito <em>siempre eres tú.</em></h1>
+          <p class="cover__intro">
+            Por si hoy se te olvida: recuerda que eres mi mundo.
+          </p>
+          <a class="text-link" href="#carta">
+            Hay algo que quiero decirte <span aria-hidden="true">↓</span>
+          </a>
+        </div>
+        <span class="cover__caption">TÚ Y YO, MI PLAN FAVORITO</span>
+      </section>
+
+      <section class="letter" id="carta" aria-labelledby="letter-title">
+        <div class="letter__inner">
+          <p class="eyebrow eyebrow--rose">UNA NOTITA, SIN MOTIVO</p>
+          <h2 id="letter-title">Me encantas en las cosas pequeñas.</h2>
+          <p class="letter__body">
+            Me encantas en las cosas pequeñas: en tu sonrisita apenada cuando te hago reír, en tu mood loco cuando empiezas a caminar súper fua, en tu niña interior cuando ves Barbies o H2O: Sirenas del Mar.
+            <br>
+            Pero también me encantas en lo enorme: en cómo haces que lo cotidiano parezca magia, en cómo tu risa le gana al ruido del mundo. Me encantas en cada detalle, en cada versión tuya, en cada locura y en cada llanto.
+            <br>
+            Y si el mundo se derrumba, que se derrumbe: yo me quedo contigo, haciendo de ti mi mundo entero.
+            <br>
+            ... y recuerda me encantas en lo pequeño, pero me pierdo en lo inmenso.
+          </p>
+          <div class="hug">
+            <div class="hug__selection" id="hug-selection">
+            <span class="hug__spark" aria-hidden="true">✳</span>
+            <p class="hug__prompt">¿Te vendría bien un abrazo?</p>
+            <div class="hug__proposal" id="hug-proposal">
+              <button class="hug__button" id="hug-button" type="button" aria-label="Sí, por favor" aria-expanded="false" aria-controls="hug-options">
+                Sí, por favor <span aria-hidden="true">♥</span>
+              </button>
+              <button class="hug__button hug__button--no" id="hug-no-button" type="button" aria-label="No se me antoja">
+                <span class="hug__no-label hug__no-label--original" aria-hidden="true">No se me antoja</span>
+                <span class="hug__no-label hug__no-label--maintenance" aria-hidden="true">El botón "No" está en mantenimiento</span>
+              </button>
+            </div>
+            <div class="hug__options" id="hug-options" hidden>
+              <label class="hug__choice" for="repellamiento">
+                <input id="repellamiento" name="hug-option" type="checkbox" />
+                <span>Con repellamiento de pipito</span>
+              </label>
+              <label class="hug__choice" for="torticulis">
+                <input id="torticulis" name="hug-option" type="checkbox" />
+                <span>Con dolor de torticulis</span>
+              </label>
+              <label class="hug__choice" for="apretamiento">
+                <input id="apretamiento" name="hug-option" type="checkbox" />
+                <span>Con apretamiento de nalguitas</span>
+              </label>
+              <label class="hug__choice" for="besistos">
+                <input id="besistos" name="hug-option" type="checkbox" />
+                <span>Con besistos absorbedores de cachetes</span>
+              </label>
+              <label class="hug__choice" for="dragon-breath">
+                <input id="dragon-breath" name="hug-option" type="checkbox" />
+                <span id="dragon-breath-label">Con aliento de Dragón</span>
+              </label>
+            </div>
+            <div class="booking__actions" id="booking-actions" hidden>
+              <p class="booking__hint" id="booking-hint">
+                Habilita el botón de agendar seleccionando todos los checkboxes propuestos por tu popin hermoso (sabemos que es hermoso).
+              </p>
+              <button class="hug__button booking__button" id="booking-button" type="button" disabled>
+                Agendar abrazo <span aria-hidden="true">♥</span>
+              </button>
+            </div>
+            <p class="hug__message" id="hug-message" aria-live="polite" hidden></p>
+            </div>
+            <section class="schedule" id="schedule" aria-labelledby="schedule-title" hidden>
+              <h3 id="schedule-title">¿Cuándo quieres recibir ese abrazo?</h3>
+              <label class="schedule__field" for="hug-day">
+                <span>Elige el día</span>
+                <select id="hug-day">
+                  <option value="0">Hoy</option>
+                  <option value="1">Mañana</option>
+                  <option value="2">Pasado mañana</option>
+                </select>
+              </label>
+              <label class="schedule__field" for="hug-time">
+                <span>Elige la hora</span>
+                <select id="hug-time"></select>
+              </label>
+              <button class="hug__button schedule__confirm" id="schedule-confirm" type="button">
+                Confirmar horario
+              </button>
+              <p class="schedule__confirmation" id="schedule-confirmation" aria-live="polite" hidden></p>
+            </section>
+          </div>
+
+          <p class="signoff">Con todo el amor del mundo, <span>tu chico ♡</span></p>
+        </div>
+        <span class="letter__flower letter__flower--one" aria-hidden="true">✳</span>
+        <span class="letter__flower letter__flower--two" aria-hidden="true">✳</span>
+      </section>
+    </main>
+    <script>
+      const cover = document.querySelector(".cover");
+      const coverPhoto = document.querySelector(".cover__photo");
+      const hugButton = document.querySelector("#hug-button");
+      const hugNoButton = document.querySelector("#hug-no-button");
+      const hugProposal = document.querySelector("#hug-proposal");
+      const hugOptions = document.querySelector("#hug-options");
+      const hugMessage = document.querySelector("#hug-message");
+      const repellamiento = document.querySelector("#repellamiento");
+      const torticulis = document.querySelector("#torticulis");
+      const apretamiento = document.querySelector("#apretamiento");
+      const besistos = document.querySelector("#besistos");
+      const dragonBreath = document.querySelector("#dragon-breath");
+      const hugChoices = [repellamiento, torticulis, apretamiento, besistos, dragonBreath];
+      const bookingActions = document.querySelector("#booking-actions");
+      const bookingButton = document.querySelector("#booking-button");
+      const hugSelection = document.querySelector("#hug-selection");
+      const schedule = document.querySelector("#schedule");
+      const signoff = document.querySelector(".signoff");
+      const hugDay = document.querySelector("#hug-day");
+      const hugTime = document.querySelector("#hug-time");
+      const scheduleConfirm = document.querySelector("#schedule-confirm");
+      const scheduleConfirmation = document.querySelector("#schedule-confirmation");
+      const choiceMessages = {
+        repellamiento: "Ufff pensé que me iba a quedar sin arrecostarte el pipito",
+        torticulis: "Esos abrazos son los mejores... mejores dolores de cuellos",
+        apretamiento: "Estás acabando popinnnn, toda una popin atrevida.",
+        besistos: "Esa opción te sacará una sonrisa en el momento... siempre lo hace",
+        "dragon-breath": "¡Dracarys!",
+      };
+      const maintenanceMessage = 'El botón "No" está en mantenimiento';
+      let selectedChoiceOrder = [];
+      let messageTransition;
+      let scheduleCountdown;
+      let noButtonTimeout;
+      const messageTransitionDuration = 180;
+
+      function finishCoverLoading(hasImage) {
+        cover.classList.add("cover--loaded");
+        if (!hasImage) cover.classList.add("cover--image-error");
+      }
+
+      coverPhoto.addEventListener("load", () => finishCoverLoading(true), { once: true });
+      coverPhoto.addEventListener("error", () => finishCoverLoading(false), { once: true });
+      if (coverPhoto.complete) finishCoverLoading(coverPhoto.naturalWidth > 0);
+
+      function setMaintenanceState(isActive) {
+        hugNoButton.classList.toggle("is-maintenance", isActive);
+        hugNoButton.setAttribute("aria-label", isActive ? maintenanceMessage : "No se me antoja");
+      }
+
+      if ("scrollRestoration" in window.history) window.history.scrollRestoration = "manual";
+
+      window.addEventListener("pageshow", () => {
+        window.clearTimeout(messageTransition);
+        window.clearTimeout(noButtonTimeout);
+        window.clearInterval(scheduleCountdown);
+        selectedChoiceOrder = [];
+        hugProposal.hidden = false;
+        hugButton.hidden = false;
+        hugButton.setAttribute("aria-expanded", "false");
+        setMaintenanceState(false);
+        hugOptions.hidden = true;
+        bookingActions.hidden = true;
+        hugChoices.forEach((choice) => { choice.checked = false; });
+        bookingButton.disabled = true;
+        hugMessage.hidden = true;
+        hugMessage.textContent = "";
+        hugMessage.classList.remove("hug__message--visible");
+        schedule.hidden = true;
+        scheduleConfirmation.hidden = true;
+        scheduleConfirm.disabled = false;
+        hugSelection.inert = false;
+        hugSelection.setAttribute("aria-disabled", "false");
+        hugSelection.classList.remove("hug__selection--disabled");
+        window.scrollTo(0, 0);
+      });
+
+      hugButton.addEventListener("click", () => {
+        hugProposal.hidden = true;
+        hugButton.setAttribute("aria-expanded", "true");
+        hugOptions.hidden = false;
+        bookingActions.hidden = false;
+        signoff.scrollIntoView({ behavior: "smooth", block: "end" });
+      });
+
+      const isMobile = () => window.matchMedia("(max-width: 600px)").matches;
+      hugNoButton.addEventListener("mouseenter", () => { if (!isMobile()) setMaintenanceState(true); });
+      hugNoButton.addEventListener("mouseleave", () => { if (!isMobile()) setMaintenanceState(false); });
+      hugNoButton.addEventListener("focus", () => { if (!isMobile()) setMaintenanceState(true); });
+      hugNoButton.addEventListener("blur", () => { if (!isMobile()) setMaintenanceState(false); });
+      hugNoButton.addEventListener("click", () => {
+        if (!isMobile()) return;
+        window.clearTimeout(noButtonTimeout);
+        setMaintenanceState(true);
+        noButtonTimeout = window.setTimeout(() => setMaintenanceState(false), 1500);
+      });
+
+      function showMessage(message) {
+        window.clearTimeout(messageTransition);
+        if (hugMessage.hidden) {
+          hugMessage.textContent = message;
+          hugMessage.hidden = false;
+          window.requestAnimationFrame(() => hugMessage.classList.add("hug__message--visible"));
+          return;
+        }
+        if (hugMessage.textContent === message) {
+          hugMessage.classList.add("hug__message--visible");
+          return;
+        }
+        hugMessage.classList.remove("hug__message--visible");
+        messageTransition = window.setTimeout(() => {
+          hugMessage.textContent = message;
+          hugMessage.classList.add("hug__message--visible");
+        }, messageTransitionDuration);
+      }
+
+      function hideMessage() {
+        window.clearTimeout(messageTransition);
+        hugMessage.classList.remove("hug__message--visible");
+        messageTransition = window.setTimeout(() => {
+          hugMessage.hidden = true;
+          hugMessage.textContent = "";
+        }, messageTransitionDuration);
+      }
+
+      function updateHugMessage(event) {
+        const changedChoice = event.currentTarget;
+        selectedChoiceOrder = selectedChoiceOrder.filter((choice) => choice !== changedChoice);
+        if (changedChoice.checked) selectedChoiceOrder.push(changedChoice);
+        bookingButton.disabled = !hugChoices.every((choice) => choice.checked);
+        const activeChoice = [...selectedChoiceOrder].reverse().find((choice) => choice.checked);
+        if (activeChoice) showMessage(choiceMessages[activeChoice.id]);
+        else hideMessage();
+      }
+
+      hugChoices.forEach((choice) => choice.addEventListener("change", updateHugMessage));
+
+      for (let minutes = 0; minutes < 24 * 60; minutes += 15) {
+        const hour = String(Math.floor(minutes / 60)).padStart(2, "0");
+        const minute = String(minutes % 60).padStart(2, "0");
+        const option = document.createElement("option");
+        option.value = `${hour}:${minute}`;
+        option.textContent = option.value;
+        hugTime.append(option);
+      }
+
+      bookingButton.addEventListener("click", () => {
+        if (!bookingButton.disabled) {
+          schedule.hidden = false;
+          scheduleConfirmation.hidden = true;
+          hugSelection.inert = true;
+          hugSelection.setAttribute("aria-disabled", "true");
+          hugSelection.classList.add("hug__selection--disabled");
+          const signoffBounds = signoff.getBoundingClientRect();
+          const signoffTop = window.scrollY + signoffBounds.top;
+          const centeredScrollTop = signoffTop - (window.innerHeight - signoffBounds.height) / 2;
+          window.scrollTo({ top: centeredScrollTop, behavior: "smooth" });
+        }
+      });
+
+      scheduleConfirm.addEventListener("click", () => {
+        const dayLabels = ["hoy", "mañana", "pasado mañana"];
+        const selectedDay = dayLabels[Number(hugDay.value)];
+        const message = `Popin, quiero agendar mi abrazo para ${selectedDay} a las ${hugTime.value}.`;
+        const whatsappUrl = `https://wa.me/5355210171?text=${encodeURIComponent(message)}`;
+        let secondsRemaining = 5;
+        scheduleConfirmation.textContent = `Agendar cita en ${secondsRemaining}`;
+        scheduleConfirmation.hidden = false;
+        scheduleConfirm.disabled = true;
+        scheduleCountdown = window.setInterval(() => {
+          secondsRemaining -= 1;
+          scheduleConfirmation.textContent = `Agendar cita en ${secondsRemaining}`;
+          if (secondsRemaining === 0) {
+            window.clearInterval(scheduleCountdown);
+            window.location.href = whatsappUrl;
+          }
+        }, 1000);
+      });
+    </script>
+  </body>
+</html>
